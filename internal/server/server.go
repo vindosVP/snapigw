@@ -78,11 +78,17 @@ func NewServer(port int, l zerolog.Logger) *Server {
 	return s
 }
 
-func (s *Server) SetRouter() {
+func (s *Server) SetRouter(secret string) {
 	r := gin.Default()
 	r.Use(middleware.RequestId())
 	r.POST("/api/users/register", s.proxs.auth.RegisterHandler())
 	r.POST("/api/users/login", s.proxs.auth.LoginHandler())
 	r.POST("/api/users/refresh", s.proxs.auth.RefreshHandler())
+
+	authorizedAdmin := r.Group("/")
+	authorizedAdmin.Use(middleware.Authorize(secret, true))
+	authorizedAdmin.POST("/api/users/:id/banned", s.proxs.auth.SetBannedHandler())
+	authorizedAdmin.POST("/api/users/:id/deleted", s.proxs.auth.SetDeletedHandler())
+	authorizedAdmin.POST("/api/users/:id/admin", s.proxs.auth.SetAdminHandler())
 	s.router = r
 }

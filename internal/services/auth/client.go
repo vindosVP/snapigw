@@ -14,6 +14,42 @@ type Client struct {
 	grpc authv1.AuthClient
 }
 
+func (c Client) SetBanned(ctx context.Context, userId int64, isBanned bool) (bool, error) {
+	req := &authv1.SetBannedRequest{
+		UserId:   userId,
+		IsBanned: isBanned,
+	}
+	res, err := c.grpc.SetBanned(ctx, req)
+	if err != nil {
+		return false, err
+	}
+	return res.IsBanned, nil
+}
+
+func (c Client) SetDeleted(ctx context.Context, userId int64, isDeleted bool) (bool, error) {
+	req := &authv1.SetDeletedRequest{
+		UserId:    userId,
+		IsDeleted: isDeleted,
+	}
+	res, err := c.grpc.SetDeleted(ctx, req)
+	if err != nil {
+		return false, err
+	}
+	return res.IsDeleted, nil
+}
+
+func (c Client) SetAdmin(ctx context.Context, userId int64, isAdmin bool) (bool, error) {
+	req := &authv1.SetAdminRightsRequest{
+		UserId:  userId,
+		IsAdmin: isAdmin,
+	}
+	res, err := c.grpc.SetAdminRights(ctx, req)
+	if err != nil {
+		return false, err
+	}
+	return res.IsAdmin, nil
+}
+
 func (c Client) Register(ctx context.Context, email, password string) (int64, error) {
 	req := &authv1.RegisterRequest{
 		Email:    email,

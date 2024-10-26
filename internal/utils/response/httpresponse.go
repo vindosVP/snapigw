@@ -31,6 +31,14 @@ func Err(c *gin.Context, status int, msg string) {
 	c.JSON(status, resp)
 }
 
+func AbortErr(c *gin.Context, status int, msg string) {
+	resp := HttpResponse{
+		Message: msg,
+		Data:    nil,
+	}
+	c.AbortWithStatusJSON(status, resp)
+}
+
 func ErrData(c *gin.Context, status int, msg string, data interface{}) {
 	resp := HttpResponse{
 		Message: msg,

@@ -9,6 +9,7 @@ type Config struct {
 	Port        int      `env:"HTTP_PORT" json:"port"`
 	ENV         string   `env:"LOG_ENV" envDefault:"dev" json:"env"`
 	Services    Services `json:"services"`
+	TokenSecret string   `env:"TOKEN_SECRET" json:"-"`
 	ServiceName string   `env:"SERVICE_NAME" envDefault:"apigw-ext" json:"serviceName"`
 }
 

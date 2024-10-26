@@ -40,6 +40,6 @@ func main() {
 
 	s := server.NewServer(cfg.Port, l)
 	s.WithProxs(pxs)
-	s.SetRouter()
+	s.SetRouter(cfg.TokenSecret)
 	s.Run()
 }

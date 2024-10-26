@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -18,6 +19,186 @@ import (
 type Proxy struct {
 	client *Client
 	l      zerolog.Logger
+}
+
+func (p *Proxy) SetAdminHandler() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		reqId := c.GetString("requestId")
+		lg := p.l.With().Str("requestId", reqId).Logger()
+		req := &SetAdminRequest{}
+		err := c.BindJSON(req)
+		if err != nil {
+			lg.Info().Msg("invalid request structure")
+			response.Err(c, http.StatusBadRequest, "invalid request structure")
+			return
+		}
+		err = validator.New().Struct(req)
+		if err != nil {
+			lg.Info().Msg("invalid request")
+			response.Err(c, http.StatusBadRequest, err.Error())
+			return
+		}
+		userIdParam := c.Param("id")
+		if userIdParam == "" {
+			lg.Info().Msg("invalid user id")
+			response.Err(c, http.StatusBadRequest, "invalid user id")
+			return
+		}
+		userId, err := strconv.Atoi(userIdParam)
+		if err != nil {
+			lg.Info().Msg("invalid user id")
+			response.Err(c, http.StatusBadRequest, "invalid user id")
+			return
+		}
+		if userId == c.GetInt("userId") {
+			lg.Info().Msg("user can not set admin flag to himself")
+			response.Err(c, http.StatusBadRequest, "user can not set admin flag to himself")
+			return
+		}
+
+		meta := map[string]string{"requestId": reqId}
+		ctx := metadata.NewOutgoingContext(c, metadata.New(meta))
+		admin, err := p.client.SetAdmin(ctx, int64(userId), *req.IsAdmin)
+		if err != nil {
+			s, ok := status.FromError(err)
+			if !ok {
+				lg.Error().Stack().Msg("failed to create error from code")
+				response.Err(c, http.StatusInternalServerError, "refresh failed")
+				return
+			}
+			switch s.Code() {
+			case codes.InvalidArgument:
+				lg.Error().Msg("no requestId specified")
+				response.Err(c, http.StatusInternalServerError, "setting admin flag failed")
+			case codes.FailedPrecondition:
+				response.Err(c, http.StatusBadRequest, "user does not exist")
+			default:
+				response.Err(c, http.StatusInternalServerError, "setting admin flag failed")
+			}
+			return
+		}
+		response.OkMsg(c, http.StatusOK, &SetAdminResponse{IsAdmin: admin}, "setting deleted flag success")
+	}
+}
+
+func (p *Proxy) SetDeletedHandler() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		reqId := c.GetString("requestId")
+		lg := p.l.With().Str("requestId", reqId).Logger()
+		req := &SetDeletedRequest{}
+		err := c.BindJSON(req)
+		if err != nil {
+			lg.Info().Msg("invalid request structure")
+			response.Err(c, http.StatusBadRequest, "invalid request structure")
+			return
+		}
+		err = validator.New().Struct(req)
+		if err != nil {
+			lg.Info().Msg("invalid request")
+			response.Err(c, http.StatusBadRequest, err.Error())
+			return
+		}
+		userIdParam := c.Param("id")
+		if userIdParam == "" {
+			lg.Info().Msg("invalid user id")
+			response.Err(c, http.StatusBadRequest, "invalid user id")
+			return
+		}
+		userId, err := strconv.Atoi(userIdParam)
+		if err != nil {
+			lg.Info().Msg("invalid user id")
+			response.Err(c, http.StatusBadRequest, "invalid user id")
+			return
+		}
+		if userId == c.GetInt("userId") {
+			lg.Info().Msg("user can not set deleted flag to himself")
+			response.Err(c, http.StatusBadRequest, "user can not set deleted flag to himself")
+			return
+		}
+
+		meta := map[string]string{"requestId": reqId}
+		ctx := metadata.NewOutgoingContext(c, metadata.New(meta))
+		deleted, err := p.client.SetDeleted(ctx, int64(userId), *req.IsDeleted)
+		if err != nil {
+			s, ok := status.FromError(err)
+			if !ok {
+				lg.Error().Stack().Msg("failed to create error from code")
+				response.Err(c, http.StatusInternalServerError, "refresh failed")
+				return
+			}
+			switch s.Code() {
+			case codes.InvalidArgument:
+				lg.Error().Msg("no requestId specified")
+				response.Err(c, http.StatusInternalServerError, "setting deleted flag failed")
+			case codes.FailedPrecondition:
+				response.Err(c, http.StatusBadRequest, "user does not exist")
+			default:
+				response.Err(c, http.StatusInternalServerError, "setting deleted flag failed")
+			}
+			return
+		}
+		response.OkMsg(c, http.StatusOK, &SetDeletedResponse{IsDeleted: deleted}, "setting deleted flag success")
+	}
+}
+
+func (p *Proxy) SetBannedHandler() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		reqId := c.GetString("requestId")
+		lg := p.l.With().Str("requestId", reqId).Logger()
+		req := &SetBannedRequest{}
+		err := c.BindJSON(req)
+		if err != nil {
+			lg.Info().Msg("invalid request structure")
+			response.Err(c, http.StatusBadRequest, "invalid request structure")
+			return
+		}
+		err = validator.New().Struct(req)
+		if err != nil {
+			lg.Info().Msg("invalid request")
+			response.Err(c, http.StatusBadRequest, err.Error())
+			return
+		}
+		userIdParam := c.Param("id")
+		if userIdParam == "" {
+			lg.Info().Msg("invalid user id")
+			response.Err(c, http.StatusBadRequest, "invalid user id")
+			return
+		}
+		userId, err := strconv.Atoi(userIdParam)
+		if err != nil {
+			lg.Info().Msg("invalid user id")
+			response.Err(c, http.StatusBadRequest, "invalid user id")
+			return
+		}
+		if userId == c.GetInt("userId") {
+			lg.Info().Msg("user can not set ban flag to himself")
+			response.Err(c, http.StatusBadRequest, "user can not set ban flag to himself")
+			return
+		}
+
+		meta := map[string]string{"requestId": reqId}
+		ctx := metadata.NewOutgoingContext(c, metadata.New(meta))
+		banned, err := p.client.SetBanned(ctx, int64(userId), *req.IsBanned)
+		if err != nil {
+			s, ok := status.FromError(err)
+			if !ok {
+				lg.Error().Stack().Msg("failed to create error from code")
+				response.Err(c, http.StatusInternalServerError, "refresh failed")
+				return
+			}
+			switch s.Code() {
+			case codes.InvalidArgument:
+				lg.Error().Msg("no requestId specified")
+				response.Err(c, http.StatusInternalServerError, "setting ban flag failed")
+			case codes.FailedPrecondition:
+				response.Err(c, http.StatusBadRequest, "user does not exist")
+			default:
+				response.Err(c, http.StatusInternalServerError, "setting ban flag failed")
+			}
+			return
+		}
+		response.OkMsg(c, http.StatusOK, &SetBannedResponse{IsBanned: banned}, "setting ban flag success")
+	}
 }
 
 func (p *Proxy) RefreshHandler() func(c *gin.Context) {
