@@ -35,7 +35,7 @@ func (p *Proxy) SetAdminHandler() func(c *gin.Context) {
 		err = validator.New().Struct(req)
 		if err != nil {
 			lg.Info().Msg("invalid request")
-			response.Err(c, http.StatusBadRequest, err.Error())
+			response.Err(c, http.StatusBadRequest, "validation error")
 			return
 		}
 		userIdParam := c.Param("id")
@@ -63,21 +63,21 @@ func (p *Proxy) SetAdminHandler() func(c *gin.Context) {
 			s, ok := status.FromError(err)
 			if !ok {
 				lg.Error().Stack().Msg("failed to create error from code")
-				response.Err(c, http.StatusInternalServerError, "refresh failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set admin flag")
 				return
 			}
 			switch s.Code() {
 			case codes.InvalidArgument:
 				lg.Error().Msg("no requestId specified")
-				response.Err(c, http.StatusInternalServerError, "setting admin flag failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set admin flag")
 			case codes.FailedPrecondition:
 				response.Err(c, http.StatusBadRequest, "user does not exist")
 			default:
-				response.Err(c, http.StatusInternalServerError, "setting admin flag failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set admin flag")
 			}
 			return
 		}
-		response.OkMsg(c, http.StatusOK, &SetAdminResponse{IsAdmin: admin}, "setting deleted flag success")
+		response.OkMsg(c, http.StatusOK, &SetAdminResponse{IsAdmin: admin}, "admin flag set successfully")
 	}
 }
 
@@ -95,7 +95,7 @@ func (p *Proxy) SetDeletedHandler() func(c *gin.Context) {
 		err = validator.New().Struct(req)
 		if err != nil {
 			lg.Info().Msg("invalid request")
-			response.Err(c, http.StatusBadRequest, err.Error())
+			response.Err(c, http.StatusBadRequest, "validation error")
 			return
 		}
 		userIdParam := c.Param("id")
@@ -129,15 +129,15 @@ func (p *Proxy) SetDeletedHandler() func(c *gin.Context) {
 			switch s.Code() {
 			case codes.InvalidArgument:
 				lg.Error().Msg("no requestId specified")
-				response.Err(c, http.StatusInternalServerError, "setting deleted flag failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set deleted flag")
 			case codes.FailedPrecondition:
 				response.Err(c, http.StatusBadRequest, "user does not exist")
 			default:
-				response.Err(c, http.StatusInternalServerError, "setting deleted flag failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set deleted flag")
 			}
 			return
 		}
-		response.OkMsg(c, http.StatusOK, &SetDeletedResponse{IsDeleted: deleted}, "setting deleted flag success")
+		response.OkMsg(c, http.StatusOK, &SetDeletedResponse{IsDeleted: deleted}, "set deleted flag successfully")
 	}
 }
 
@@ -183,21 +183,21 @@ func (p *Proxy) SetBannedHandler() func(c *gin.Context) {
 			s, ok := status.FromError(err)
 			if !ok {
 				lg.Error().Stack().Msg("failed to create error from code")
-				response.Err(c, http.StatusInternalServerError, "refresh failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set banned flag")
 				return
 			}
 			switch s.Code() {
 			case codes.InvalidArgument:
 				lg.Error().Msg("no requestId specified")
-				response.Err(c, http.StatusInternalServerError, "setting ban flag failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set banned flag")
 			case codes.FailedPrecondition:
 				response.Err(c, http.StatusBadRequest, "user does not exist")
 			default:
-				response.Err(c, http.StatusInternalServerError, "setting ban flag failed")
+				response.Err(c, http.StatusInternalServerError, "failed to set banned flag")
 			}
 			return
 		}
-		response.OkMsg(c, http.StatusOK, &SetBannedResponse{IsBanned: banned}, "setting ban flag success")
+		response.OkMsg(c, http.StatusOK, &SetBannedResponse{IsBanned: banned}, "set banned flag successfully")
 	}
 }
 
